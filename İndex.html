@@ -1,1 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qonaq Otağı (Guest Book)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for Icons -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+    <style>
+        /* Configure Tailwind using JIT compatibility mode if needed, though CDN often handles standard colors fine */
+        
+        /* Custom styles for aesthetic and scrollbar handling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue/gray background for a clean feel */
+        }
+        
+        /* Custom scrollbar styling for a cleaner look (Nostalgic modern UI) */
+        .message-feed {
+            scrollbar-width: thin;
+            scrollbar-color: #4f46e5 #e2e8f0;
+        }
+        .message-feed::-webkit-scrollbar {
+            width: 8px;
+        }
+        .message-feed::-webkit-scrollbar-thumb {
+            background-color: #4f46e5; /* Indigo */
+            border-radius: 10px;
+        }
+        .message-feed::-webkit-scrollbar-track {
+            background-color: #e2e8f0;
+        }
+        
+        /* Elevated Card Shadow */
+        .card-shadow {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Gradient Button with Hover Effect */
+        .submit-button {
+            transition: all 0.3s ease;
+            /* Modern gradient look */
+            background-image: linear-gradient(to right, #4f46e5, #6366f1, #818cf8);
+        }
+        .submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4);
+            filter: brightness(1.1);
+        }
+
+        /* Responsive height management for the feed */
+        .h-feed {
+            height: 60vh;
+        }
+        
+        /* Ensure inputs look good */
+        input:focus, textarea:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Application Container -->
+    <div class="min-h-screen flex items-start lg:items-center justify-center p-4 sm:p-8">
+        <div class="w-full max-w-5xl bg-white rounded-2xl card-shadow overflow-hidden">
+            
+            <!-- Header (Inspired by old chat room banners) -->
+            <header class="bg-gray-800 text-white p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center border-b-4 border-indigo-600">
+                <h1 class="text-3xl font-extrabold tracking-tight mb-2 sm:mb-0">
+                    Qonaq Otağı 
+                    <span class="text-indigo-400 text-xl font-medium block sm:inline">(The Guest Book)</span>
+                </h1>
+                <div class="text-sm bg-indigo-600 px-3 py-1 rounded-full font-semibold shadow-md">
+                    <i class="fas fa-users mr-2"></i> Active Guests: 7
+                </div>
+            </header>
+
+            <!-- Main Content Grid -->
+            <main class="grid lg:grid-cols-3 gap-6 p-4 sm:p-8">
+                
+                <!-- 1. Message Feed (The Chat Log Area) -->
+                <div class="lg:col-span-2 order-2 lg:order-1">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-4 pb-2 border-b-2 border-gray-100">Recent Entries</h2>
+                    
+                    <div id="message-feed" class="message-feed space-y-5 pr-2 h-feed overflow-y-auto">
+                        
+                        <!-- Sample Message 1 (Admin/System Message) -->
+                        <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-lg shadow-md transition duration-200">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-bold text-indigo-700 text-lg">System Message</span>
+                                <span class="text-xs text-gray-500">Just now</span>
+                            </div>
+                            <p class="text-gray-800 leading-relaxed italic">
+                                Please remember to be respectful. All entries are public! Enjoy the nostalgia.
+                            </p>
+                        </div>
+                        
+                        <!-- Sample Message 2 (User entry) -->
+                        <div class="bg-white border border-gray-200 p-4 rounded-xl shadow-sm transition duration-150 hover:border-indigo-300 hover:shadow-md">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-semibold text-gray-800">Cavid_88</span>
+                                <span class="text-xs text-gray-500">2 hours ago</span>
+                            </div>
+                            <p class="text-gray-700 leading-relaxed">
+                                Bu dizayn köhnə günləri xatırlatdı! Salamlar Bakıdan! 🥳
+                            </p>
+                        </div>
+
+                        <!-- Sample Message 3 (Longer entry) -->
+                        <div class="bg-white border border-gray-200 p-4 rounded-xl shadow-sm transition duration-150 hover:border-indigo-300 hover:shadow-md">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-semibold text-gray-800">Nigar R.</span>
+                                <span class="text-xs text-gray-500">Yesterday, 10:45</span>
+                            </div>
+                            <p class="text-gray-700 leading-relaxed">
+                                The typography is very clean. It feels vintage but modern. I think adding emojis is necessary for full chat room immersion! 😄💻
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- 2. Submission Form -->
+                <div class="lg:col-span-1 order-1 lg:order-2 bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-inner h-full">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-5 pb-2 border-b-2 border-indigo-100">Post Entry</h2>
+                    
+                    <form id="guest-book-form" class="space-y-5">
+                        
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Your Name / Nickname</label>
+                            <input type="text" id="name" required placeholder="Anonymous User"
+                                class="w-full p-3 border-2 border-gray-300 rounded-lg shadow-sm transition duration-150"
+                            >
+                        </div>
+                        
+                        <div>
+                            <label for="message" class="block text-sm font-medium text-gray-700 mb-1">Your Message (Max 280 Chars)</label>
+                            <textarea id="message" rows="7" maxlength="280" required placeholder="Type your greeting, memory, or comment here..."
+                                class="w-full p-3 border-2 border-gray-300 rounded-lg resize-none shadow-sm transition duration-150"
+                            ></textarea>
+                        </div>
+
+                        <button type="submit"
+                            class="submit-button w-full text-white font-bold py-3 rounded-lg text-lg tracking-wider uppercase shadow-lg">
+                            Submit Entry
+                        </button>
+                    </form>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="p-4 sm:p-6 text-center bg-gray-100 text-gray-600 text-sm border-t border-gray-200">
+                <p>Designed and Built by an Expert Web Developer using Tailwind CSS. All rights reserved.</p>
+            </footer>
+
+        </div>
+    </div>
+
+    <!-- JavaScript for Interactivity -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('guest-book-form');
+            const messageFeed = document.getElementById('message-feed');
+            const nameInput = document.getElementById('name');
+            const messageInput = document.getElementById('message');
+
+            // --- Helper Functions ---
+
+            // Function to format time dynamically
+            function formatTime(date) {
+                const now = new Date();
+                const seconds = Math.floor((now - date) / 1000);
+                
+                if (seconds < 60) return `${seconds} seconds ago`;
+                
+                const minutes = Math.floor(seconds / 60);
+                if (minutes < 60) return `${minutes} minutes ago`;
+                
+                const hours = Math.floor(minutes / 60);
+                if (hours < 24) return `${hours} hours ago`;
+                
+                return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            }
+
+            // Function to create a new message element
+            function createMessageElement(name, message, timestamp) {
+                const timeString = formatTime(timestamp);
+                
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'bg-white border border-gray-200 p-4 rounded-xl shadow-sm transition duration-150 hover:border-indigo-300 hover:shadow-md opacity-0 animate-fadeIn';
+                
+                // Simple fade-in animation via JS for new messages
+                setTimeout(() => {
+                     messageDiv.classList.remove('opacity-0');
+                }, 10);
+                
+                messageDiv.innerHTML = `
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-semibold text-gray-800">${name}</span>
+                        <span class="text-xs text-gray-500">${timeString}</span>
+                    </div>
+                    <p class="text-gray-700 leading-relaxed whitespace-pre-wrap">${message}</p>
+                `;
+                
+                return messageDiv;
+            }
+
+            // --- Form Submission Handler ---
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const name = nameInput.value.trim() || 'Anonymous Guest';
+                const message = messageInput.value.trim();
+
+                if (message) {
+                    const newMessage = createMessageElement(name, message, new Date());
+                    
+                    // Prepend the new message to the feed (newest on top, like a typical chat feed)
+                    messageFeed.prepend(newMessage);
+                    
+                    // Scroll feed to the top to see the newest message
+                    messageFeed.scrollTop = 0;
+
+                    // Clear message input
+                    messageInput.value = '';
+                    
+                    // Focus back on the message input
+                    messageInput.focus();
+                }
+            });
+            
+            // Define basic animation style for the fade-in effect (since we can't define keyframes easily in CDN Tailwind setup without configuration)
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(-10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fadeIn {
+                    animation: fadeIn 0.5s ease-out forwards;
+                }
+            `;
+            document.head.appendChild(style);
+
+        });
+    </script>
+</body>
+</html>
 
