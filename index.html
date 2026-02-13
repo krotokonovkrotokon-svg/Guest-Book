@@ -1,0 +1,199 @@
+
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qonaq Otağı</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5; padding: 20px; }
+        .container { max-width: 960px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
+        
+        /* Başlıq */
+        .header { display: flex; align-items: center; justify-content: center; padding: 20px; border-bottom: 2px solid #000; background: #fff; }
+        .header-icon { width: 40px; height: 40px; margin-right: 15px; }
+        .header h1 { font-size: 32px; font-weight: 600; }
+
+        /* Onlayn Status */
+        .online-status { background-color: #d4edda; border: 2px solid #7bc77b; padding: 15px; margin: 20px; text-align: center; font-size: 18px; border-radius: 4px; }
+        .online-dot { display: inline-block; width: 12px; height: 12px; background-color: #7bc77b; border-radius: 50%; margin-right: 10px; }
+
+        /* Ad Bölməsi */
+        .name-section { border: 2px solid #000; margin: 20px; padding: 20px; border-radius: 4px; }
+        .name-section h3 { margin-bottom: 15px; font-size: 18px; }
+        .name-input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        .name-input-group input { flex: 1; padding: 12px; border: 1px solid #ccc; font-size: 16px; border-radius: 4px; }
+        .btn-save { background-color: #000; color: white; border: none; padding: 12px 30px; font-size: 16px; cursor: pointer; border-radius: 4px; }
+        .btn-save:hover { background-color: #333; }
+        .current-name { color: #666; font-size: 14px; }
+
+        /* Mesajlar */
+        .messages-section { border: 2px solid #000; margin: 20px; padding: 20px; height: 400px; overflow-y: auto; border-radius: 4px; background: #fafafa; }
+        .message { padding: 15px 0; border-bottom: 1px solid #eee; }
+        .message:last-child { border-bottom: none; }
+        .message-author { font-weight: 600; font-size: 16px; margin-bottom: 5px; color: #000; }
+        .message-content { color: #333; margin-bottom: 5px; font-size: 15px; line-height: 1.4; }
+        .message-time { color: #999; font-size: 12px; text-align: right; }
+
+        /* Mesaj Girişi */
+        .message-input-section { display: flex; gap: 10px; margin: 20px; }
+        .message-input-section input { flex: 1; padding: 15px; border: 2px solid #000; font-size: 16px; border-radius: 4px; }
+        .btn-send { background-color: #000; color: white; border: none; padding: 15px 40px; font-size: 16px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        .btn-send:hover { background-color: #333; }
+
+        /* Təmizləmə */
+        .clear-section { margin: 20px; }
+        .btn-clear { width: 100%; background-color: #dc3545; color: white; border: none; padding: 15px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; border-radius: 4px; }
+        .btn-clear:hover { background-color: #c82333; }
+        .empty-messages { text-align: center; color: #999; padding: 40px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <h1>Qonaq Otağı</h1>
+        </div>
+
+        <div class="online-status">
+            <span class="online-dot"></span>
+            <strong>Status: <span id="onlineCount">Aktiv</span></strong>
+        </div>
+
+        <div class="name-section">
+            <h3>Adınız:</h3>
+            <div class="name-input-group">
+                <input type="text" id="nameInput" placeholder="Adınızı daxil edin">
+                <button class="btn-save" id="saveNameBtn">Yadda Saxla</button>
+            </div>
+            <div class="current-name">Cari adınız: <strong id="currentName">Qonaq</strong></div>
+        </div>
+
+        <div class="messages-section" id="messagesContainer">
+            <div class="empty-messages">Mesajlar yüklənir...</div>
+        </div>
+
+        <div class="message-input-section">
+            <input type="text" id="messageInput" placeholder="Mesajınızı yazın...">
+            <button class="btn-send" id="sendBtn">Göndər</button>
+        </div>
+
+        <div class="clear-section">
+            <button class="btn-clear" id="clearBtn">
+                <span>🗑️</span>
+                <span>Bütün otaqdakı mesajları təmizlə</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Firebase Kodları -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue, set } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+        // SİZİN CONFİG KODLARINIZ
+        const firebaseConfig = {
+            apiKey: "AIzaSyDnDW8dihsKEL0LkX4IamqsBWbkWM6FpmY",
+            authDomain: "nostalji-chat-d355c.firebaseapp.com",
+            databaseURL: "https://nostalji-chat-d355c-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "nostalji-chat-d355c",
+            storageBucket: "nostalji-chat-d355c.firebasestorage.app",
+            messagingSenderId: "637311149685",
+            appId: "1:637311149685:web:d4bb09338e291eea0c7a3c"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const messagesRef = ref(db, 'chat_messages');
+
+        // Elementləri seçirik
+        const messagesDiv = document.getElementById('messagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        const nameInput = document.getElementById('nameInput');
+        const currentNameDisplay = document.getElementById('currentName');
+        const saveNameBtn = document.getElementById('saveNameBtn');
+        const sendBtn = document.getElementById('sendBtn');
+        const clearBtn = document.getElementById('clearBtn');
+
+        // Adı Yaddaşdan Oxumaq
+        let userName = localStorage.getItem('chat_username') || 'Qonaq';
+        currentNameDisplay.innerText = userName;
+
+        // Adı Dəyişmək
+        saveNameBtn.addEventListener('click', () => {
+            const newName = nameInput.value.trim();
+            if (newName) {
+                userName = newName;
+                localStorage.setItem('chat_username', newName);
+                currentNameDisplay.innerText = newName;
+                nameInput.value = '';
+                alert("Adınız yadda saxlandı!");
+            }
+        });
+
+        // Mesaj Göndərmək
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if (text) {
+                push(messagesRef, {
+                    author: userName,
+                    content: text,
+                    timestamp: Date.now()
+                });
+                messageInput.value = '';
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        
+        // Enter düyməsi ilə göndərmək
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Bütün Mesajları Silmək
+        clearBtn.addEventListener('click', () => {
+            if(confirm("Bütün yazışmalar hər kəs üçün silinəcək. Razısınız?")) {
+                set(messagesRef, null);
+            }
+        });
+
+        // Mesajları Canlı Oxumaq (Firebase)
+        onValue(messagesRef, (snapshot) => {
+            messagesDiv.innerHTML = '';
+            
+            if (!snapshot.exists()) {
+                messagesDiv.innerHTML = '<div class="empty-messages">Hələ mesaj yoxdur</div>';
+                return;
+            }
+
+            snapshot.forEach((childSnapshot) => {
+                const msg = childSnapshot.val();
+                
+                // Vaxtı düzəltmək
+                const date = new Date(msg.timestamp);
+                const timeStr = date.toLocaleTimeString('az-AZ', { hour: '2-digit', minute: '2-digit' });
+
+                const msgElement = document.createElement('div');
+                msgElement.className = 'message';
+                msgElement.innerHTML = `
+                    <div class="message-author">${msg.author}</div>
+                    <div class="message-content">${msg.content}</div>
+                    <div class="message-time">${timeStr}</div>
+                `;
+                messagesDiv.appendChild(msgElement);
+            });
+
+            // Avtomatik aşağı sürüşdür
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        });
+
+    </script>
+
+</body>
+</html>
+
